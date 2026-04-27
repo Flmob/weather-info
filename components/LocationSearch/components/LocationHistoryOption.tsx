@@ -33,7 +33,7 @@ export const LocationHistoryOption = ({
       />
 
       <span className="flex grow">
-        {location.name}, {location.state}
+        {`${location.name}${location.state ? `, ${location.state}` : ""}`}
       </span>
 
       <span

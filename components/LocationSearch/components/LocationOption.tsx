@@ -31,7 +31,7 @@ export const LocationOption = ({
         <Circle size={16} className="mr-2 min-w-4 text-gray-600" />
       )}
       <span className="flex grow">
-        {location.name}, {location.state}
+        {`${location.name}${location.state ? `, ${location.state}` : ""}`}
       </span>
       <span
         className={`mx-2 w-4 max-w-4 min-w-4 fi fi-${location.country.toLowerCase()}`}
