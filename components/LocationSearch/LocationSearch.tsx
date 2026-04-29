@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, use } from "react";
 import { Search, LoaderCircle } from "lucide-react";
 import { debounce, isEqual } from "lodash";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +9,7 @@ import { Location } from "@/types";
 import { useLocation, useShortcuts } from "@/contexts";
 import { useLocalState } from "@/hooks";
 
-import { LocationOption, LocationHistoryOption } from "./components";
+import { LocationOption } from "./components";
 
 export const LocationSearch = () => {
   const [inputValue, setInputValue] = useState("");
@@ -66,8 +66,12 @@ export const LocationSearch = () => {
     setActiveIndex(-1);
   };
 
+  const locationsToUse = useMemo(
+    () => (searchQuery ? locations : locationsHistory),
+    [searchQuery, locations, locationsHistory],
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const locationsToUse = searchQuery ? locations : locationsHistory;
     if (!locationsToUse || locationsToUse.length === 0) return;
 
     if (e.key === "ArrowDown") {
@@ -156,49 +160,36 @@ export const LocationSearch = () => {
             ${isFocused ? "h-auto opacity-100 border-white/20" : "h-0 opacity-0 overflow-hidden p-0 border-none shadow-none"}
         `}
       >
-        {(searchQuery
-          ? locations.length === 0
-          : locationsHistory.length === 0) && (
+        {locationsToUse.length === 0 && (
           <div className="p-2 rounded-xl bg-white/10 border-white/20">
             No locations found
           </div>
         )}
 
-        {searchQuery &&
-          locations.map((location, index) => (
-            <LocationOption
-              key={`${location.country.toLowerCase()}-${location.name}-${index}`}
-              location={location}
-              isActive={index === activeIndex}
-              isSelected={
-                locationName === location.name &&
-                coords?.lat === location.lat &&
-                coords?.lon === location.lon
-              }
-              onClick={() => onLocationSelect(location)}
-            />
-          ))}
-
-        {!searchQuery &&
-          locationsHistory.map((location, index) => (
-            <LocationHistoryOption
-              key={`history-${location.country.toLowerCase()}-${location.name}-${index}`}
-              location={location}
-              isActive={index === activeIndex}
-              isSelected={
-                locationName === location.name &&
-                coords?.lat === location.lat &&
-                coords?.lon === location.lon
-              }
-              onClick={() => onLocationSelect(location)}
-              onDelete={() => {
-                setLocationsHistory(
-                  locationsHistory.filter((l) => !isEqual(l, location)),
-                );
-                latestDeletedRef.current = location;
-              }}
-            />
-          ))}
+        {locationsToUse.map((location, index) => (
+          <LocationOption
+            isHistory={!searchQuery}
+            key={`${!!searchQuery ? "search" : "history"}-${location.country.toLowerCase()}-${location.name}-${index}`}
+            location={location}
+            isActive={index === activeIndex}
+            isSelected={
+              locationName === location.name &&
+              coords?.lat === location.lat &&
+              coords?.lon === location.lon
+            }
+            onClick={() => onLocationSelect(location)}
+            onDelete={
+              searchQuery
+                ? undefined
+                : () => {
+                    setLocationsHistory(
+                      locationsHistory.filter((l) => !isEqual(l, location)),
+                    );
+                    latestDeletedRef.current = location;
+                  }
+            }
+          />
+        ))}
       </div>
     </div>
   );

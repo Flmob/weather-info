@@ -1,19 +1,23 @@
-import { Circle, CircleDot } from "lucide-react";
+import { Circle, CircleDot, History, Trash2 } from "lucide-react";
 
 import { Location } from "@/types";
 
 type LocationOptionProps = {
+  isHistory?: boolean;
   location: Location;
   isActive: boolean;
   isSelected: boolean;
   onClick: () => void;
+  onDelete?: () => void;
 };
 
 export const LocationOption = ({
   location,
+  isHistory = false,
   isActive,
   isSelected,
   onClick,
+  onDelete,
 }: LocationOptionProps) => {
   return (
     <div
@@ -25,17 +29,39 @@ export const LocationOption = ({
       `}
       onMouseDown={onClick}
     >
-      {isSelected ? (
-        <CircleDot size={16} className="mr-2 min-w-4 text-blue-500" />
-      ) : (
-        <Circle size={16} className="mr-2 min-w-4 text-gray-600" />
+      {isHistory && (
+        <History
+          size={16}
+          className={`mr-2 min-w-4 ${isSelected ? "text-blue-500" : "text-gray-600"}`}
+        />
       )}
+
+      {!isHistory &&
+        (isSelected ? (
+          <CircleDot size={16} className="mr-2 min-w-4 text-blue-500" />
+        ) : (
+          <Circle size={16} className="mr-2 min-w-4 text-gray-600" />
+        ))}
+
       <span className="flex grow">
         {`${location.name}${location.state ? `, ${location.state}` : ""}`}
       </span>
       <span
         className={`mx-2 w-4 max-w-4 min-w-4 fi fi-${location.country.toLowerCase()}`}
       ></span>
+
+      {onDelete && (
+        <button type="button" className="cursor-pointer">
+          <Trash2
+            size={16}
+            className="min-w-4 text-gray-600 hover:text-red-500"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          />
+        </button>
+      )}
     </div>
   );
 };
